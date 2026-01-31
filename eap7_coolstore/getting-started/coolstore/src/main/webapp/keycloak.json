@@ -1,8 +1,0 @@
-{
-    "realm": "eap",
-    "auth-server-url": "https://keycloak-coolstore-mono.apps.cluster-<GUID>.dynamic.redhatworkshops.io/",
-    "ssl-required": "external",
-    "resource": "eap-app",
-    "public-client": true,
-    "confidential-port": 0
-  }
