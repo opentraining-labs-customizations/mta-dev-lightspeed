@@ -1,7 +1,13 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coolstore-mono
+---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
+  namespace: coolstore-mono
   name: eap74-coolstore
 spec:
   runPolicy: Serial
@@ -20,3 +26,4 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: eap74-coolstore
+  namespace: coolstore-mono
