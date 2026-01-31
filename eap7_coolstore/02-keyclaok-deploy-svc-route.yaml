@@ -1,7 +1,23 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: keycloak-rhbk
+  namespace: coolstore-mono
+spec:
+  tags:
+    - name: "22"
+      from:
+        kind: DockerImage
+        name: "registry.redhat.io/rhbk/keycloak-rhel9:22"
+      importPolicy:
+        scheduled: true
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: keycloak
+  namespace: coolstore-mono
 spec:
   replicas: 1
   selector:
@@ -14,7 +30,7 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: registry.redhat.io/rhbk/keycloak-rhel9:22
+          image: image-registry.openshift-image-registry.svc:5000/coolstore-mono/keycloak-rhbk:22
           args:
             - start-dev
             - --import-realm
@@ -26,7 +42,7 @@ spec:
             - name: KC_PROXY
               value: edge
             - name: KC_HOSTNAME
-              value: keycloak-coolstore-mono.apps.cluster-<GUID>.dynamic.redhatworkshops.io
+              value: keycloak-coolstore-mono.apps.cluster-bchts.dynamic.redhatworkshops.io
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HTTP_ENABLED
@@ -45,6 +61,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak
+  namespace: coolstore-mono
 spec:
   selector:
     app: keycloak
@@ -57,6 +74,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: keycloak
+  namespace: coolstore-mono
 spec:
   to:
     kind: Service
@@ -66,3 +84,66 @@ spec:
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-bootstrap
+  namespace: coolstore-mono
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: keycloak-bootstrap
+          image: registry.redhat.io/rhbk/keycloak-rhel9:22
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              KEYCLOAK_URL="http://keycloak:8080"
+              REALM="eap"
+              export KCADM_CONFIG=/tmp/kcadm.config
+              echo "Authenticating with Keycloak..."
+              /opt/keycloak/bin/kcadm.sh config credentials \
+                --server ${KEYCLOAK_URL} \
+                --realm master \
+                --user admin \
+                --password admin \
+                --config ${KCADM_CONFIG}
+              echo "Creating user user1 (idempotent)..."
+              /opt/keycloak/bin/kcadm.sh create users -r ${REALM} \
+                -s username=user1 \
+                -s enabled=true \
+                -s email=user1@example.com \
+                --config ${KCADM_CONFIG} || true
+              echo "Ensuring user user1 exists..."
+              if ! /opt/keycloak/bin/kcadm.sh get users -r ${REALM} \
+                -q username=user1 --config ${KCADM_CONFIG} | grep -q '"username"'; then
+                /opt/keycloak/bin/kcadm.sh create users -r ${REALM} \
+                  -s username=user1 \
+                  -s enabled=true \
+                  -s email=user1@example.com \
+                  --config ${KCADM_CONFIG}
+              fi
+              echo "Resolving user ID..."
+              USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r ${REALM} \
+                -q username=user1 \
+                --fields id \
+                --format csv \
+                --noquotes \
+                --config ${KCADM_CONFIG} | head -n 1)
+              if [ -z "${USER_ID}" ]; then
+                echo "ERROR: user1 ID not found"
+                exit 1
+              fi
+              echo "Setting password for user1..."
+              /opt/keycloak/bin/kcadm.sh set-password \
+                -r ${REALM} \
+                --userid "${USER_ID}" \
+                --new-password redhat \
+                --config ${KCADM_CONFIG}
+              echo "Keycloak bootstrap completed at $(date)"
+
