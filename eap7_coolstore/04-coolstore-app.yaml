@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aaa
+  labels:
+    app: coolstore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coolstore
+  template:
+    metadata:
+      labels:
+        app: coolstore
+    spec:
+      containers:
+        - name: eap74
+          image: image-registry.openshift-image-registry.svc:5000/coolstore-mono/eap74-coolstore:latest
+          volumeMounts:
+            - name: jms-cli
+              mountPath: /opt/eap/extensions
+              readOnly: true
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    echo "Waiting for EAP..."
+                    for i in {1..30}; do
+                      /opt/eap/bin/jboss-cli.sh --connect \
+                        "/subsystem=messaging-activemq/server=default:read-resource" \
+                        && break
+                      sleep 2
+                    done
+
+                    echo "Running JMS CLI..."
+                    /opt/eap/bin/jboss-cli.sh --connect --file=/opt/eap/extensions/jms.cli
+          ports:
+            - containerPort: 8080
+      volumes:
+        - name: jms-cli
+          configMap:
+            name: eap-jms-cli
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aaa
+  labels:
+    app: coolstore
+spec:
+  selector:
+    app: coolstore
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: aaa
+  labels:
+    app: coolstore
+spec:
+  to:
+    kind: Service
+    name: aaa
+  port:
+    targetPort: 8080
+  # Optional: edge termination for HTTPS
+  tls:
+    termination: edge

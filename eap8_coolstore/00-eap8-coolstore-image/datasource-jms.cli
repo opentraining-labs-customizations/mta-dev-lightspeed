@@ -1,0 +1,29 @@
+
+embed-server --server-config=standalone-openshift.xml
+
+# --------------------------------
+# JMS Topic (server already exists)
+# --------------------------------
+#/subsystem=messaging-activemq/server=default/jms-topic=orders:add(entries=["java:/topic/orders"])
+
+# -----------------------------
+# JDBC Driver
+# -----------------------------
+/subsystem=datasources/jdbc-driver=postgresql:add(driver-name=postgresql, driver-module-name=org.postgresql, driver-class-name=org.postgresql.Driver)
+
+# -----------------------------
+# Datasource
+# -----------------------------
+/subsystem=datasources/data-source=CoolstoreDS:add(jndi-name=java:/jboss/datasources/CoolstoreDS,driver-name=postgresql,connection-url=jdbc:postgresql://postgres:5432/mydb,user-name=myuser,password=mypassword)
+
+
+#/subsystem=messaging-activemq/server=default:add()
+#/subsystem=messaging-activemq/server=default/jms-topic=orders:add(entries=["java:/topic/orders"])
+
+#/subsystem=messaging-activemq/server=default/jms-topic=orders:read-resource
+
+#/subsystem=resource-adapters/resource-adapter=activemq-ra:add(archive=activemq-rar.rar, transaction-support=XATransaction)
+
+#/subsystem=resource-adapters/resource-adapter=activemq-ra/connection-definitions=DefaultJMSConnectionFactory:add(class-name=org.apache.activemq.artemis.ra.ActiveMQManagedConnectionFactory, jndi-name=java:/JmsXA, enabled=true, min-pool-size=1, max-pool-size=20)
+
+stop-embedded-server
