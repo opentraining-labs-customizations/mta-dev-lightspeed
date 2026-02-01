@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: keycloak
+  namespace: coolstore-eap8
 spec:
   replicas: 1
   selector:
@@ -26,7 +27,7 @@ spec:
             - name: KC_PROXY
               value: edge
             - name: KC_HOSTNAME
-              value: keycloak-coolstore-mono.apps.cluster-76trl.dynamic.redhatworkshops.io
+              value: keycloak-coolstore-eap8.apps.cluster-jwkcp.dynamic.redhatworkshops.io
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HTTP_ENABLED
@@ -45,6 +46,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak
+  namespace: coolstore-eap8
 spec:
   selector:
     app: keycloak
@@ -57,6 +59,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: keycloak
+  namespace: coolstore-eap8
 spec:
   to:
     kind: Service

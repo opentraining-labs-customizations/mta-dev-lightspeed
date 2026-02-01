@@ -65,6 +65,7 @@ spec:
                 -r ${REALM} \
                 --userid "${USER_ID}" \
                 --new-password redhat \
+                --temporary=false \
                 --config ${KCADM_CONFIG}
 
 

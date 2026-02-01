@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aaa8
+  namespace: coolstore-eap8
   labels:
     app: cool
 spec:
@@ -17,7 +18,7 @@ spec:
     spec:
       containers:
         - name: eap8
-          image: image-registry.openshift-image-registry.svc:5000/coolstore-mono/coolstore-eap81:latest
+          image: image-registry.openshift-image-registry.svc:5000/coolstore-eap8/coolstore-eap81:latest
           ports:
             - containerPort: 8080
 ---
@@ -25,6 +26,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: aaa8
+  namespace: coolstore-eap8
   labels:
     app: cool
 spec:
@@ -38,6 +40,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: aaa8
+  namespace: coolstore-eap8
   labels:
     app: cool
 spec:
