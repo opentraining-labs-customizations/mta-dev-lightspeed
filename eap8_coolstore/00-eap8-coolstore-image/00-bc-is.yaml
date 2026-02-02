@@ -8,6 +8,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: coolstore-eap81
+  namespace: coolstore-eap8
 spec:
   runPolicy: Serial
   source:
@@ -26,6 +27,7 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: coolstore-eap81
+  namespace: coolstore-eap8
 spec:
   lookupPolicy:
     local: true

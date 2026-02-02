@@ -27,7 +27,7 @@ spec:
             - name: KC_PROXY
               value: edge
             - name: KC_HOSTNAME
-              value: keycloak-coolstore-eap8.apps.cluster-jwkcp.dynamic.redhatworkshops.io
+              value: keycloak-coolstore-eap8.apps.cluster-<GUID>.dynamic.redhatworkshops.io
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HTTP_ENABLED
