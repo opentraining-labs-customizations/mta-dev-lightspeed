@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aaa8
+  name: coolstore
   namespace: coolstore-eap8
   labels:
     app: cool
@@ -25,7 +25,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: aaa8
+  name: coolstore
   namespace: coolstore-eap8
   labels:
     app: cool
@@ -39,14 +39,14 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: aaa8
+  name: coolstore
   namespace: coolstore-eap8
   labels:
     app: cool
 spec:
   to:
     kind: Service
-    name: aaa8
+    name: coolstore
   port:
     targetPort: 8080
   # Optional: edge termination for HTTPS
